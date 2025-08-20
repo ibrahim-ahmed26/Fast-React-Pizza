@@ -39,5 +39,8 @@ module.exports = {
       "warn",
       { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
     ],
+
+    // Fix for unknown Tailwind at-rules
+    "css/unknown-at-rule": 0,
   },
 };
