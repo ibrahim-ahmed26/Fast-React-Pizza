@@ -8,6 +8,7 @@ const isValidPhone = (str) =>
   /^\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}$/.test(
     str,
   );
+
 const fakeCart = [
   {
     pizzaId: 12,
@@ -33,7 +34,6 @@ const fakeCart = [
 ];
 
 function CreateOrder() {
-  // const [withPriority, setWithPriority] = useState(false);
   const navigation = useNavigation();
   const errorHandle = useActionData();
   const isSubmitting = navigation.state === 'submitting';
@@ -41,63 +41,89 @@ function CreateOrder() {
   const [phone, setPhone] = useState('');
 
   return (
-    <div>
-      <h2>Ready to order? Lets go!</h2>
+    <div className="mt-6 max-w-2xl px-4">
+      <h2 className="mb-8 text-2xl font-bold text-stone-800">
+        Ready to order? Let’s go!
+      </h2>
 
-      <Form method="POST">
-        <div>
-          <label>First Name</label>
-          <input className="input" type="text" name="customer" required />
+      <Form method="POST" className="space-y-6">
+        <div className="flex flex-col">
+          <label className="mb-1 text-sm font-semibold text-stone-700">
+            First Name
+          </label>
+          <input
+            className="w-full rounded-md border border-stone-300 px-4 py-2 text-sm text-stone-700 shadow-sm transition duration-200 focus:border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-1"
+            type="text"
+            name="customer"
+            required
+          />
         </div>
 
-        <div>
-          <label>Phone number</label>
-          <div>
-            <input
-              type="tel"
-              name="phone"
-              required
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className={`input ${
-                isValidPhone(phone)
-                  ? 'border-gray-300 focus:ring-2 focus:ring-yellow-400'
-                  : 'border-red-600 focus:ring-2 focus:ring-red-600'
-              } `}
-            />
-            {errorHandle?.phone && <p>{errorHandle.phone}</p>}
-          </div>
+        {/* Phone Number */}
+        <div className="flex flex-col">
+          <label className="mb-1 text-sm font-semibold text-stone-700">
+            Phone number
+          </label>
+          <input
+            type="tel"
+            name="phone"
+            required
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            className={`w-full rounded-md px-4 py-2 text-sm text-stone-700 shadow-sm transition duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 ${
+              isValidPhone(phone)
+                ? 'border-stone-300 focus:border-yellow-400 focus:ring-yellow-400'
+                : 'border-red-500 text-red-600 focus:border-red-500 focus:ring-red-500'
+            }`}
+          />
+          {errorHandle?.phone && (
+            <p className="mt-1 text-xs font-medium text-red-600">
+              {errorHandle.phone}
+            </p>
+          )}
         </div>
 
-        <div>
-          <label>Address</label>
-          <div>
-            <input type="text" name="address" className="input" required />
-          </div>
+        {/* Address */}
+        <div className="flex flex-col">
+          <label className="mb-1 text-sm font-semibold text-stone-700">
+            Address
+          </label>
+          <input
+            type="text"
+            name="address"
+            className="w-full rounded-md border border-stone-300 px-4 py-2 text-sm text-stone-700 shadow-sm transition duration-200 focus:border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-1"
+            required
+          />
         </div>
 
-        <div>
+        {/* Priority Checkbox */}
+        <div className="flex items-center gap-3">
           <input
             type="checkbox"
             name="priority"
             id="priority"
-            className="h-6 w-6 px-8 py-2 accent-yellow-400 focus:outline-none"
-            // value={withPriority}
-            // onChange={(e) => setWithPriority(e.target.checked)}
+            className="h-5 w-5 rounded border-stone-300 text-yellow-500 accent-yellow-500 focus:ring-yellow-400 focus:ring-offset-1"
           />
-          <label htmlFor="priority">Want to yo give your order priority?</label>
+          <label
+            htmlFor="priority"
+            className="text-sm font-medium text-stone-700"
+          >
+            Want to give your order priority?
+          </label>
         </div>
 
-        <div>
-          <input type="hidden" name="cart" value={JSON.stringify(cart)} />
-          <Button disabled={isSubmitting}>
-            {isSubmitting ? 'placing Order...' : 'Order now'}
-          </Button>
-        </div>
+        {/* Hidden Cart */}
+        <input type="hidden" name="cart" value={JSON.stringify(cart)} />
+
+        {/* Submit Button */}
+        <Button disabled={isSubmitting}>
+          {isSubmitting ? 'Placing Order...' : 'Order now'}
+        </Button>
       </Form>
     </div>
   );
 }
+
 export async function action({ request }) {
   const formData = await request.formData();
   const data = Object.fromEntries(formData);
@@ -106,11 +132,14 @@ export async function action({ request }) {
     cart: JSON.parse(data.cart),
     priority: data.priority === 'on',
   };
+
   const errors = {};
   if (!isValidPhone(order.phone))
     errors.phone = 'Please Provide A Correct Phone Number So We Can Reach You';
   if (Object.keys(errors).length > 0) return errors;
+
   const newOrder = await createOrder(order);
   return redirect(`/order/${newOrder.id}`);
 }
+
 export default CreateOrder;

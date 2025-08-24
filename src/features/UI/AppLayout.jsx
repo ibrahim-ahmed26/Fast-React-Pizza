@@ -6,7 +6,7 @@ export default function Applayout() {
   const navigation = useNavigation();
   const isLoading = navigation.state === 'loading';
   return (
-    <div className="grid h-screen grid-rows-[auto_1fr_auto] gap-2">
+    <div className="grid h-dvh grid-rows-[auto_1fr_auto] gap-1">
       {isLoading && <Loader />}
       <Header />
       <div className="overflow-y-scroll">

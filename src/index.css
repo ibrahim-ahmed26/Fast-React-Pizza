@@ -3,44 +3,42 @@
 @tailwind utilities;
 @layer components {
   .input {
-    @apply w-full rounded-full px-4 py-3 text-sm text-stone-600 transition-all duration-300 focus:outline-none focus:ring focus:ring-yellow-400;
+    @apply w-full rounded-full px-2 py-2 text-sm text-stone-600 transition-all duration-300 focus:outline-none focus:ring focus:ring-yellow-400;
   }
-}
-.loader {
-  width: 45px;
-  aspect-ratio: 0.75;
-  --c: no-repeat linear-gradient(#333 0 0);
-  background:
-    var(--c) 0% 50%,
-    var(--c) 50% 50%,
-    var(--c) 100% 50%;
-  background-size: 20% 50%;
-  animation: loading 1s infinite linear;
-}
+  .loader {
+    width: 50px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 6px solid #292524; /* stone-800 */
+    border-top-color: #eab308; /* yellow-500 */
+    animation: spin 1s linear infinite;
+    position: relative;
+  }
 
-@keyframes loading {
-  20% {
-    background-position:
-      0% 0%,
-      50% 50%,
-      100% 50%;
+  .loader::before {
+    content: '';
+    position: absolute;
+    inset: 20%; /* inner size */
+    border-radius: 50%;
+    background: #eab308; /* yellow-500 */
+    animation: pulse 1.5s ease-in-out infinite;
   }
-  40% {
-    background-position:
-      0% 100%,
-      50% 0%,
-      100% 50%;
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
   }
-  60% {
-    background-position:
-      0% 50%,
-      50% 100%,
-      100% 0%;
-  }
-  80% {
-    background-position:
-      0% 50%,
-      50% 50%,
-      100% 100%;
+
+  @keyframes pulse {
+    0%,
+    100% {
+      transform: scale(1);
+      opacity: 0.8;
+    }
+    50% {
+      transform: scale(1.2);
+      opacity: 1;
+    }
   }
 }
