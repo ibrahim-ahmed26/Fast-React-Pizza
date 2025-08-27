@@ -1,9 +1,22 @@
 import { formatCurrency } from '../utlitis/helpers';
 import Button from '../UI/Button';
+import { useDispatch } from 'react-redux';
+import { addItems } from '../cart/cartslice';
 
 function MenuItem({ pizza }) {
   const { id, name, unitPrice, ingredients, soldOut, imageUrl } = pizza;
-
+  const dispatch = useDispatch();
+  function handleAdditem() {
+    const newItems = {
+      pizzaId: id,
+      name,
+      quantity: 1,
+      unitPrice,
+      totalPrice: unitPrice * 1,
+    };
+    dispatch(addItems(newItems));
+    console.log(newItems);
+  }
   return (
     <li className="flex flex-col items-center gap-4 rounded-lg border-b border-gray-200 p-4 transition-shadow duration-300 hover:shadow-lg sm:flex-row">
       <div className="flex-shrink-0">
@@ -43,13 +56,11 @@ function MenuItem({ pizza }) {
               Sold out
             </p>
           )}
-
-          <Button
-            disabled={soldOut}
-            type={`${soldOut ? 'secondary' : 'primary'}`}
-          >
-            {soldOut ? 'Sold Out' : 'Add to cart'}
-          </Button>
+          {!soldOut && (
+            <Button type="primary" onClick={handleAdditem}>
+              Add to Cart
+            </Button>
+          )}
         </div>
       </div>
     </li>

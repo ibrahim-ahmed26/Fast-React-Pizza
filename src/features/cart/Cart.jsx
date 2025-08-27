@@ -1,7 +1,8 @@
-import { Link } from 'react-router-dom';
 import LinkButton from '../UI/ButtonLink';
 import Button from '../UI/Button';
 import CartItem from './CartItem';
+import { useDispatch, useSelector } from 'react-redux';
+import { clearCart } from './cartslice';
 const fakeCart = [
   {
     pizzaId: 12,
@@ -27,12 +28,16 @@ const fakeCart = [
 ];
 
 function Cart() {
-  const cart = fakeCart;
-
+  const cart = useSelector((state) => state.cart.cart);
+  const username = useSelector((state) => state.user.username);
+  const dispatch = useDispatch();
+  function handleClearItems() {
+    dispatch(clearCart());
+  }
   return (
     <div className="px-4 py-3">
       <LinkButton to="/menu">&larr; Back to menu</LinkButton>
-      <h2 className="mb-3 mt-4">Your cart, %NAME%</h2>
+      <h2 className="mb-3 mt-4">Your cart, {username}</h2>
       <ul className="divide-y-2 border-b">
         {cart.map((item) => (
           <CartItem item={item} key={item.pizzaId} />
@@ -40,7 +45,9 @@ function Cart() {
       </ul>
       <div className="mt-4 space-x-2">
         <Button to="/order/new">Order pizzas</Button>
-        <Button type="secondary">Clear cart</Button>
+        <Button type="secondary" onClick={handleClearItems}>
+          Clear cart
+        </Button>
       </div>
     </div>
   );

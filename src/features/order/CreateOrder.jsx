@@ -2,6 +2,9 @@ import { Form, redirect, useActionData, useNavigation } from 'react-router-dom';
 import { createOrder } from '../utlitis/apiRestaurant';
 import { useState } from 'react';
 import Button from '../UI/Button';
+import { useDispatch, useSelector } from 'react-redux';
+import { updateName } from '../user/userSlice';
+import Username from '../user/UserName';
 
 // https://uibakery.io/regex-library/phone-number
 const isValidPhone = (str) =>
@@ -34,19 +37,25 @@ const fakeCart = [
 ];
 
 function CreateOrder() {
+  const username = useSelector((state) => state.user.username);
+  const dispatch = useDispatch();
+  const [newUsername, setNewUsername] = useState('');
   const navigation = useNavigation();
   const errorHandle = useActionData();
   const isSubmitting = navigation.state === 'submitting';
   const cart = fakeCart;
   const [phone, setPhone] = useState('');
-
+  function handleSubmit() {
+    if (!newUsername) return null;
+    dispatch(updateName(newUsername));
+  }
   return (
     <div className="mt-6 max-w-2xl px-4">
       <h2 className="mb-8 text-2xl font-bold text-stone-800">
         Ready to order? Let’s go!
       </h2>
 
-      <Form method="POST" className="space-y-6">
+      <Form method="POST" className="space-y-6" onSubmit={handleSubmit}>
         <div className="flex flex-col">
           <label className="mb-1 text-sm font-semibold text-stone-700">
             First Name
@@ -55,6 +64,8 @@ function CreateOrder() {
             className="w-full rounded-md border border-stone-300 px-4 py-2 text-sm text-stone-700 shadow-sm transition duration-200 focus:border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-1"
             type="text"
             name="customer"
+            defaultValue={username}
+            onChange={(e) => setNewUsername(e.target.value)}
             required
           />
         </div>
