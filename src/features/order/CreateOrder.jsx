@@ -4,51 +4,57 @@ import { useState } from 'react';
 import Button from '../UI/Button';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateName } from '../user/userSlice';
-import Username from '../user/UserName';
-
+import { clearCart, getCart, getTotalPrice } from '../cart/cartslice';
+import EmptyCart from '../cart/EmptyCart';
+import { formatCurrency } from '../utlitis/helpers';
+import store from '../../store';
 // https://uibakery.io/regex-library/phone-number
 const isValidPhone = (str) =>
   /^\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}$/.test(
     str,
   );
 
-const fakeCart = [
-  {
-    pizzaId: 12,
-    name: 'Mediterranean',
-    quantity: 2,
-    unitPrice: 16,
-    totalPrice: 32,
-  },
-  {
-    pizzaId: 6,
-    name: 'Vegetale',
-    quantity: 1,
-    unitPrice: 13,
-    totalPrice: 13,
-  },
-  {
-    pizzaId: 11,
-    name: 'Spinach and Mushroom',
-    quantity: 1,
-    unitPrice: 15,
-    totalPrice: 15,
-  },
-];
+// const useSelector(getCart) = [
+//   {
+//     pizzaId: 12,
+//     name: 'Mediterranean',
+//     quantity: 2,
+//     unitPrice: 16,
+//     totalPrice: 32,
+//   },
+//   {
+//     pizzaId: 6,
+//     name: 'Vegetale',
+//     quantity: 1,
+//     unitPrice: 13,
+//     totalPrice: 13,
+//   },
+//   {
+//     pizzaId: 11,
+//     name: 'Spinach and Mushroom',
+//     quantity: 1,
+//     unitPrice: 15,
+//     totalPrice: 15,
+//   },
+// ];
 
 function CreateOrder() {
+  const [withPirioty, setWithPirioty] = useState(false);
+  const [newUsername, setNewUsername] = useState('');
   const username = useSelector((state) => state.user.username);
   const dispatch = useDispatch();
-  const [newUsername, setNewUsername] = useState('');
   const navigation = useNavigation();
   const errorHandle = useActionData();
   const isSubmitting = navigation.state === 'submitting';
-  const cart = fakeCart;
+  const cart = useSelector(getCart);
   const [phone, setPhone] = useState('');
   function handleSubmit() {
     if (!newUsername) return null;
     dispatch(updateName(newUsername));
   }
+  const totalPrice = useSelector(getTotalPrice);
+  const totatPriceWithPirioty = withPirioty ? totalPrice * 1.2 : totalPrice;
+  if (!cart.length) return <EmptyCart />;
   return (
     <div className="mt-6 max-w-2xl px-4">
       <h2 className="mb-8 text-2xl font-bold text-stone-800">
@@ -69,8 +75,6 @@ function CreateOrder() {
             required
           />
         </div>
-
-        {/* Phone Number */}
         <div className="flex flex-col">
           <label className="mb-1 text-sm font-semibold text-stone-700">
             Phone number
@@ -94,7 +98,6 @@ function CreateOrder() {
           )}
         </div>
 
-        {/* Address */}
         <div className="flex flex-col">
           <label className="mb-1 text-sm font-semibold text-stone-700">
             Address
@@ -107,13 +110,14 @@ function CreateOrder() {
           />
         </div>
 
-        {/* Priority Checkbox */}
         <div className="flex items-center gap-3">
           <input
             type="checkbox"
             name="priority"
             id="priority"
             className="h-5 w-5 rounded border-stone-300 text-yellow-500 accent-yellow-500 focus:ring-yellow-400 focus:ring-offset-1"
+            checked={withPirioty}
+            onChange={(e) => setWithPirioty(e.target.checked)}
           />
           <label
             htmlFor="priority"
@@ -123,33 +127,34 @@ function CreateOrder() {
           </label>
         </div>
 
-        {/* Hidden Cart */}
         <input type="hidden" name="cart" value={JSON.stringify(cart)} />
 
-        {/* Submit Button */}
         <Button disabled={isSubmitting}>
-          {isSubmitting ? 'Placing Order...' : 'Order now'}
+          {isSubmitting
+            ? 'Placing Order...'
+            : `Order now For ${formatCurrency(totatPriceWithPirioty)}`}
         </Button>
       </Form>
     </div>
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export async function action({ request }) {
   const formData = await request.formData();
   const data = Object.fromEntries(formData);
   const order = {
     ...data,
     cart: JSON.parse(data.cart),
-    priority: data.priority === 'on',
+    priority: data.priority === 'true',
   };
 
   const errors = {};
   if (!isValidPhone(order.phone))
     errors.phone = 'Please Provide A Correct Phone Number So We Can Reach You';
   if (Object.keys(errors).length > 0) return errors;
-
   const newOrder = await createOrder(order);
+  store.dispatch(clearCart());
   return redirect(`/order/${newOrder.id}`);
 }
 
