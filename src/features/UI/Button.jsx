@@ -15,9 +15,10 @@ export default function Button({
     secondary:
       base +
       ' bg-stone-400 hover:bg-stone-300 focus:bg-stone-300 focus:ring-offset-2 focus:ring-stone-300',
+    round:
+      'rounded-lg font-medium bg-yellow-400 px-2 py-1 transition-colors duration-500 hover:bg-yellow-300 hover:text-stone-700 focus:bg-yellow-300 focus:outline-none focus:ring focus:ring-yellow-300 focus:ring-offset-2 ',
   };
 
-  // Case 1: Link
   if (to) {
     return (
       <Link to={to} className={styles[type]}>
@@ -26,7 +27,6 @@ export default function Button({
     );
   }
 
-  // Case 2: Normal button
   return (
     <button disabled={disabled} onClick={onClick} className={styles[type]}>
       {children}

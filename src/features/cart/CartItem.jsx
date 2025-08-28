@@ -1,13 +1,9 @@
-import { useDispatch } from 'react-redux';
-import Button from '../UI/Button';
 import { formatCurrency } from '../utlitis/helpers';
-import { deleteItems } from './cartslice';
+import DeleteItems from '../UI/DeleteItems';
+import UpdateQuantity from '../UI/UpdateQuantity';
+
 function CartItem({ item }) {
   const { pizzaId, name, quantity, totalPrice } = item;
-  const dispatch = useDispatch();
-  function handleDeleteItem() {
-    dispatch(deleteItems(pizzaId));
-  }
   return (
     <li className="rounded-md px-2 transition-all duration-300 hover:shadow-lg sm:flex sm:items-center sm:justify-between">
       <p className="text-xl font-semibold">
@@ -15,9 +11,8 @@ function CartItem({ item }) {
       </p>
       <div className="flex items-center justify-between sm:gap-6">
         <p className="text-sm font-semibold">{formatCurrency(totalPrice)}</p>
-        <Button type="secondary" onClick={handleDeleteItem}>
-          Delete
-        </Button>
+        <UpdateQuantity pizzaid={pizzaId} currentQuantity={quantity} />
+        <DeleteItems pizzaId={pizzaId} />
       </div>
     </li>
   );
