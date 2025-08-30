@@ -1,6 +1,6 @@
 // Test ID: IIDSAT
 
-import { useLoaderData } from 'react-router-dom';
+import { useFetcher, useLoaderData } from 'react-router-dom';
 import { getOrder } from '../utlitis/apiRestaurant';
 import {
   calcMinutesLeft,
@@ -8,9 +8,24 @@ import {
   formatDate,
 } from '../utlitis/helpers';
 import OrderItem from './OrderItem';
+import { useEffect, useState } from 'react';
+import UpdateOrder from './UpdateOrder';
+import Button from '../UI/Button';
 function Order() {
+  const [view, setView] = useState(false);
+  function handleView() {
+    setView(true);
+  }
   const order = useLoaderData();
   // Everyone can search for all orders, so for privacy reasons we're gonna gonna exclude names or address, these are only for the restaurant staff
+  const fetcher = useFetcher();
+  useEffect(
+    function () {
+      if (!fetcher.data && fetcher.state === 'idle')
+        return fetcher.load('/menu');
+    },
+    [fetcher],
+  );
   const {
     id,
     status,
@@ -21,7 +36,6 @@ function Order() {
     cart,
   } = order;
   const deliveryIn = calcMinutesLeft(estimatedDelivery);
-
   return (
     <div className="px-2">
       <div className="mb-4 flex cursor-pointer flex-row flex-wrap items-center gap-4 space-x-2 rounded-lg border-b-2 border-yellow-300 px-1 py-4 transition-all duration-300 hover:shadow-lg sm:justify-between">
@@ -56,10 +70,17 @@ function Order() {
       </div>
       <ul className="my-4 divide-y-2 border-b-2 border-t-2">
         {cart.map((item) => (
-          <OrderItem key={item.id} item={item} />
+          <OrderItem
+            key={item.pizzaId}
+            item={item}
+            ingredients={
+              fetcher.data?.find((el) => el.id === item.pizzaId).ingredients
+            }
+            isLoadingIngredients={fetcher.state === 'loading'}
+          />
         ))}
       </ul>
-      <div className="space-y-2 rounded-md bg-stone-600 px-4 py-5">
+      <div className="relative space-y-2 rounded-md bg-stone-600 px-4 py-5">
         <p className="text-stone-400">
           Price pizza: {formatCurrency(orderPrice)}
         </p>
@@ -71,7 +92,15 @@ function Order() {
         <p className="font-bold text-stone-200">
           To pay on delivery: {formatCurrency(orderPrice + priorityPrice)}
         </p>
+        <Button type="primary" onClick={handleView}>
+          Update Order Details
+        </Button>
       </div>
+      {view ? (
+        <UpdateOrder view={view} priority={priority} setView={setView} />
+      ) : (
+        ''
+      )}
     </div>
   );
 }

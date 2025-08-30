@@ -2,7 +2,6 @@ import { formatCurrency } from '../utlitis/helpers';
 
 function OrderItem({ item, isLoadingIngredients, ingredients }) {
   const { quantity, name, totalPrice } = item;
-
   return (
     <li>
       <div className="flex flex-wrap items-center justify-between">
@@ -11,6 +10,9 @@ function OrderItem({ item, isLoadingIngredients, ingredients }) {
         </p>
         <p className="text-sm text-stone-400">{formatCurrency(totalPrice)}</p>
       </div>
+      <p className="py-2 text-sm capitalize text-stone-400">
+        {isLoadingIngredients ? 'loading...' : ingredients?.join(', ')}
+      </p>
     </li>
   );
 }

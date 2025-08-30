@@ -3,7 +3,7 @@ import { createOrder } from '../utlitis/apiRestaurant';
 import { useState } from 'react';
 import Button from '../UI/Button';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateName } from '../user/userSlice';
+import { fetchAddress, updateName } from '../user/userSlice';
 import { clearCart, getCart, getTotalPrice } from '../cart/cartslice';
 import EmptyCart from '../cart/EmptyCart';
 import { formatCurrency } from '../utlitis/helpers';
@@ -13,35 +13,17 @@ const isValidPhone = (str) =>
   /^\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}$/.test(
     str,
   );
-
-// const useSelector(getCart) = [
-//   {
-//     pizzaId: 12,
-//     name: 'Mediterranean',
-//     quantity: 2,
-//     unitPrice: 16,
-//     totalPrice: 32,
-//   },
-//   {
-//     pizzaId: 6,
-//     name: 'Vegetale',
-//     quantity: 1,
-//     unitPrice: 13,
-//     totalPrice: 13,
-//   },
-//   {
-//     pizzaId: 11,
-//     name: 'Spinach and Mushroom',
-//     quantity: 1,
-//     unitPrice: 15,
-//     totalPrice: 15,
-//   },
-// ];
-
 function CreateOrder() {
   const [withPirioty, setWithPirioty] = useState(false);
   const [newUsername, setNewUsername] = useState('');
-  const username = useSelector((state) => state.user.username);
+  const {
+    username,
+    position: userPosition,
+    status: addressStatus,
+    address,
+    error,
+  } = useSelector((state) => state.user);
+  const isLoadingPosition = addressStatus === 'loading';
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const errorHandle = useActionData();
@@ -60,7 +42,6 @@ function CreateOrder() {
       <h2 className="mb-8 text-2xl font-bold text-stone-800">
         Ready to order? Let’s go!
       </h2>
-
       <Form method="POST" className="space-y-6" onSubmit={handleSubmit}>
         <div className="flex flex-col">
           <label className="mb-1 text-sm font-semibold text-stone-700">
@@ -92,22 +73,43 @@ function CreateOrder() {
             }`}
           />
           {errorHandle?.phone && (
-            <p className="mt-1 text-xs font-medium text-red-600">
+            <p className="mt-1 rounded-lg border border-solid border-red-500 bg-red-200 px-1 text-xs font-medium capitalize text-red-600 sm:text-sm">
               {errorHandle.phone}
             </p>
           )}
         </div>
 
-        <div className="flex flex-col">
+        <div className="relative flex flex-col">
           <label className="mb-1 text-sm font-semibold text-stone-700">
             Address
           </label>
           <input
+            defaultValue={address}
+            disabled={isLoadingPosition}
             type="text"
             name="address"
             className="w-full rounded-md border border-stone-300 px-4 py-2 text-sm text-stone-700 shadow-sm transition duration-200 focus:border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-1"
             required
           />
+          {!userPosition.latitude && !userPosition.longtitude && (
+            <button
+              className="absolute right-1 top-7 rounded-xl bg-yellow-400 p-1 text-sm text-stone-700 disabled:cursor-not-allowed"
+              disabled={isLoadingPosition}
+              onClick={(e) => {
+                e.preventDefault();
+                dispatch(fetchAddress());
+              }}
+            >
+              Get Position
+            </button>
+          )}
+          {addressStatus === 'error' ? (
+            <p className="mt-1 rounded-lg border border-solid border-red-500 bg-red-200 px-1 text-xs font-medium capitalize text-red-600 sm:text-sm">
+              {error}
+            </p>
+          ) : (
+            ''
+          )}
         </div>
 
         <div className="flex items-center gap-3">
@@ -115,9 +117,12 @@ function CreateOrder() {
             type="checkbox"
             name="priority"
             id="priority"
+            defaultValue={withPirioty}
             className="h-5 w-5 rounded border-stone-300 text-yellow-500 accent-yellow-500 focus:ring-yellow-400 focus:ring-offset-1"
             checked={withPirioty}
-            onChange={(e) => setWithPirioty(e.target.checked)}
+            onChange={(e) => {
+              setWithPirioty(e.target.checked);
+            }}
           />
           <label
             htmlFor="priority"
@@ -128,7 +133,15 @@ function CreateOrder() {
         </div>
 
         <input type="hidden" name="cart" value={JSON.stringify(cart)} />
-
+        <input
+          type="hidden"
+          name="position"
+          value={
+            userPosition.latitude && userPosition.longitude
+              ? `${userPosition.latitude}, ${userPosition.longitude}`
+              : ''
+          }
+        />
         <Button disabled={isSubmitting}>
           {isSubmitting
             ? 'Placing Order...'
@@ -148,7 +161,6 @@ export async function action({ request }) {
     cart: JSON.parse(data.cart),
     priority: data.priority === 'true',
   };
-
   const errors = {};
   if (!isValidPhone(order.phone))
     errors.phone = 'Please Provide A Correct Phone Number So We Can Reach You';
