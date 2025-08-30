@@ -92,9 +92,11 @@ function Order() {
         <p className="font-bold text-stone-200">
           To pay on delivery: {formatCurrency(orderPrice + priorityPrice)}
         </p>
-        <Button type="primary" onClick={handleView}>
-          Update Order Details
-        </Button>
+        {deliveryIn >= 10 && (
+          <Button type="primary" onClick={handleView}>
+            Update Order Details
+          </Button>
+        )}
       </div>
       {view ? (
         <UpdateOrder view={view} priority={priority} setView={setView} />
